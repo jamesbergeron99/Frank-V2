@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Talk to Frank</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background: #1a1a1a; color: #f0f0f0; padding: 20px; }
+        #chat-box { height: 400px; overflow-y: scroll; border: 1px solid #ff00ff; padding: 10px; margin-bottom: 10px; background: #000; }
+        input { width: 70%; padding: 10px; }
+        button { padding: 10px; cursor: pointer; background: #ff00ff; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h1>Frank's Executive Suite</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="userInput" placeholder="Speak your mind, darling...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="startVoice()">🎤 Dictate</button>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('userInput').value;
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<p><b>You:</b> ${input}</p>`;
+            
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: input })
+            });
+            const data = await response.json();
+            chatBox.innerHTML += `<p><b>Frank:</b> ${data.text}</p>`;
+            document.getElementById('userInput').value = '';
+            
+            // Text-to-Speech: Frank speaks back
+            const speech = new SpeechSynthesisUtterance(data.text);
+            window.speechSynthesis.speak(speech);
+        }
+
+        function startVoice() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.onresult = (event) => {
+                document.getElementById('userInput').value = event.results[0][0].transcript;
+            };
+            recognition.start();
+        }
+    </script>
+</body>
+</html>

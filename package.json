@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FRANK V2</title>
+    <style>
+        body { background: #1a1a1a; color: #eee; font-family: 'Courier New', Courier, monospace; padding: 40px; }
+        textarea { width: 100%; height: 400px; background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 10px; margin-bottom: 10px;}
+        .button-group { display: flex; gap: 10px; }
+        button { background: #d4af37; color: black; padding: 15px 30px; font-weight: bold; border: none; cursor: pointer; }
+        button.voice-btn { background: #4a5568; color: white; }
+        #output { margin-top: 30px; white-space: pre-wrap; line-height: 1.6; border-top: 1px solid #444; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>FRANK: THE HONEST SCRIPT DOCTOR</h1>
+    <textarea id="input" placeholder="Paste your script here..."></textarea>
+    
+    <div class="button-group">
+        <button onclick="runFrank()">GET COVERAGE</button>
+        <button class="voice-btn" onclick="speakFrank()">HEAR FRANK'S VOICE</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+        let lastFeedback = "";
+
+        async function runFrank() {
+            const text = document.getElementById('input').value;
+            const out = document.getElementById('output');
+            out.innerText = "Frank is lighting a cigarette and reading. One moment...";
+            
+            try {
+                const response = await fetch('http://localhost:3001/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scriptText: text })
+                });
+                const data = await response.json();
+                lastFeedback = data.feedback;
+                out.innerText = data.feedback;
+            } catch (err) {
+                out.innerText = "Error: Frank is indisposed. Check if your server is running.";
+            }
+        }
+
+        async function speakFrank() {
+            if (!lastFeedback) {
+                alert("Frank needs to read the script first.");
+                return;
+            }
+            await fetch('http://localhost:3001/speak', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: lastFeedback })
+            });
+            alert("Voice request sent to server.");
+        }
+    </script>
+</body>
+</html>
